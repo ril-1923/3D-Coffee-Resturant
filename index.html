@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bean & Beyond – 3D Coffee Restaurant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lora&family=Pacifico&family=Poppins:wght@400;600&family=Righteous&family=Nunito&family=Lobster&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;overflow-x:hidden;background:var(--bg);color:var(--fg);font-family:var(--bf);transition:background .8s,color .8s}
+h1,h2,h3,h4,.brand{font-family:var(--hf);margin:0 0 .5rem}
+body[data-theme=home]{--bg:#1e120c;--fg:#f3e3d0;--ac:#d9904a;--card:#33201530;--hf:'Playfair Display',serif;--bf:'Lora',serif}
+body[data-theme=menu]{--bg:#f5e6cf;--fg:#3b2616;--ac:#a0522d;--card:#fffaf0;--hf:'Pacifico',cursive;--bf:'Poppins',sans-serif}
+body[data-theme=gallery]{--bg:#0f3a30;--fg:#e4fbe9;--ac:#7fe0a5;--card:#ffffff14;--hf:'Righteous',sans-serif;--bf:'Nunito',sans-serif}
+body[data-theme=reserve]{--bg:#c4573a;--fg:#fff3e8;--ac:#ffd27a;--card:#00000026;--hf:'Lobster',cursive;--bf:'Quicksand',sans-serif}
+/* mini bootstrap-compatible layer */
+.container{max-width:1100px;margin:auto;padding:0 1rem}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem}
+.navbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:100;background:#0006;backdrop-filter:blur(10px);padding:.6rem 0}
+.navbar .container{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem}
+.brand{font-size:1.5rem;color:var(--ac)}
+.nav{display:flex;gap:.4rem;flex-wrap:wrap}
+.nav-link{background:none;border:2px solid transparent;color:var(--fg);padding:.4rem 1rem;border-radius:2rem;cursor:pointer;font:inherit;transition:.3s}
+.nav-link:hover{border-color:var(--ac)}
+.nav-link.active{background:var(--ac);color:#1a0f08}
+.tab-pane{display:none;padding:2.5rem 0 4rem}
+.tab-pane.active{display:block;animation:pageIn .8s}
+@keyframes pageIn{from{opacity:0;transform:perspective(900px) rotateX(12deg) translateY(30px)}}
+.btn{display:inline-block;border:0;border-radius:2rem;padding:.7rem 1.6rem;background:var(--ac);color:#1a0f08;font:600 1rem var(--bf);cursor:pointer;transition:transform .3s,box-shadow .3s}
+.btn:hover{transform:translateY(-3px) scale(1.05);box-shadow:0 10px 20px #0005}
+.badge{background:#fff;color:#000;border-radius:1rem;padding:.1rem .6rem;font-size:.8rem}
+.card{background:var(--card);border-radius:1rem;padding:1.4rem;border:1px solid #ffffff22}
+.collapse:not(.show){display:none}
+.collapsing{height:0;overflow:hidden;transition:height .3s}
+.accordion-button{width:100%;text-align:left;background:var(--card);color:var(--fg);border:0;padding:1rem;font:600 1rem var(--bf);cursor:pointer;border-bottom:1px solid #fff3}
+.accordion-body{padding:1rem;background:#0002}
+.modal{display:none;position:fixed;inset:0;z-index:1055;overflow:auto}
+.modal.show{display:block}
+.modal-dialog{max-width:420px;margin:15vh auto;padding:0 1rem}
+.modal-content{background:#2b1a10;color:#f3e3d0;border-radius:1rem;padding:2rem;text-align:center;transform:perspective(800px) rotateX(0)}
+.modal.fade .modal-content{transform:perspective(800px) rotateX(-40deg) scale(.8);transition:.4s}
+.modal.show .modal-content{transform:none}
+.modal-backdrop{position:fixed;inset:0;background:#000;z-index:1050;opacity:.65}
+.fade{transition:opacity .2s}.fade:not(.show){opacity:0}
+.toast-container{position:fixed;right:1rem;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:1100}
+.toast{display:none;background:#222;color:#fff;padding:.8rem 1.2rem;border-radius:.8rem;border-left:5px solid #d9904a}
+.toast.show{display:block}
+/* HERO 3D */
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem;align-items:center;min-height:70vh}
+.hero h1{font-size:clamp(2.4rem,7vw,4.5rem);line-height:1.05}
+.hero h1 span{color:var(--ac)}
+.scene{perspective:900px;height:380px;display:flex;align-items:center;justify-content:center;position:relative}
+.stage{position:relative;width:240px;height:260px;transform-style:preserve-3d;transition:transform .15s}
+.saucer{position:absolute;bottom:0;left:-20px;width:280px;height:70px;border-radius:50%;background:radial-gradient(#fff,#cfc2b4);box-shadow:0 30px 40px #000a;transform:rotateX(70deg) translateZ(-10px)}
+.cup{position:absolute;bottom:35px;left:20px;width:200px;height:170px;background:linear-gradient(90deg,#d8cdbf,#fff 40%,#cbbfb0);border-radius:0 0 100px 100px;transform:translateZ(20px)}
+.cup::before{content:"";position:absolute;top:-18px;left:0;width:200px;height:40px;border-radius:50%;background:radial-gradient(#8a5a35,#3a1f10);border:6px solid #eee;transform:translateZ(1px)}
+.cup::after{content:"";position:absolute;right:-48px;top:30px;width:60px;height:80px;border:14px solid #e6dccf;border-left:0;border-radius:0 50px 50px 0}
+.steam{position:absolute;bottom:200px;width:14px;height:90px;border-radius:50%;background:linear-gradient(#fff9,#fff0);filter:blur(6px);animation:steam 3s infinite;transform:translateZ(40px)}
+@keyframes steam{0%{transform:translate3d(0,0,40px) scaleX(1);opacity:0}30%{opacity:.8}100%{transform:translate3d(20px,-90px,60px) scaleX(2.5);opacity:0}}
+.bean{position:absolute;width:26px;height:38px;background:#5a3420;border-radius:50%;box-shadow:inset -4px -4px 8px #0008;animation:float 5s ease-in-out infinite}
+.bean::after{content:"";position:absolute;left:11px;top:3px;width:3px;height:32px;background:#2a150a;border-radius:3px;transform:rotate(12deg)}
+@keyframes float{50%{transform:translate3d(0,-25px,60px) rotate(180deg)}}
+/* MENU RING */
+.ringwrap{perspective:1100px;height:380px;margin:2rem 0;overflow:hidden}
+.ring{position:relative;width:200px;height:300px;margin:30px auto;transform-style:preserve-3d;transition:transform 1s}
+.item{position:absolute;inset:0;background:var(--card);border-radius:1rem;padding:1rem;text-align:center;box-shadow:0 15px 30px #0004;border:2px solid var(--ac);backface-visibility:hidden}
+.item .em{font-size:3.4rem}
+.item h4{font-family:var(--bf);font-weight:600;font-size:1.1rem}
+.price{color:var(--ac);font-weight:700;font-size:1.2rem}
+.ctrl{text-align:center}
+/* CUBE + FLIP */
+.cubescene{perspective:900px;height:300px;display:flex;justify-content:center;align-items:center;cursor:grab}
+.cube{width:180px;height:180px;position:relative;transform-style:preserve-3d;animation:spin 14s linear infinite}
+.cube.drag{animation:none}
+.cube div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:3rem;background:#1b6b55cc;border:2px solid var(--ac);border-radius:12px;backface-visibility:visible;font-family:var(--hf)}
+.cube small{font-size:.9rem}
+.cube div:nth-child(1){transform:translateZ(90px)}.cube div:nth-child(2){transform:rotateY(90deg) translateZ(90px)}
+.cube div:nth-child(3){transform:rotateY(180deg) translateZ(90px)}.cube div:nth-child(4){transform:rotateY(-90deg) translateZ(90px)}
+.cube div:nth-child(5){transform:rotateX(90deg) translateZ(90px)}.cube div:nth-child(6){transform:rotateX(-90deg) translateZ(90px)}
+@keyframes spin{to{transform:rotateX(360deg) rotateY(360deg)}}
+.flip{perspective:800px;height:200px}
+.flip-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .8s}
+.flip:hover .flip-in{transform:rotateY(180deg)}
+.flip-in>div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem;border-radius:1rem;backface-visibility:hidden;background:var(--card);border:1px solid var(--ac)}
+.flip-in>div:last-child{transform:rotateY(180deg);background:var(--ac);color:#06241b}
+/* FORM */
+input,select{width:100%;padding:.7rem 1rem;margin:.3rem 0 1rem;border-radius:.7rem;border:0;font:inherit}
+label{font-weight:700}
+.tilt{transform-style:preserve-3d;transition:transform .15s}
+footer{text-align:center;padding:2rem 0;opacity:.7}
+</style>
+</head>
+<body data-theme="home">
+
+<nav class="navbar"><div class="container">
+  <span class="brand">☕ Bean &amp; Beyond</span>
+  <div class="nav" role="tablist">
+    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#home" data-theme="home">Home</button>
+    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#menu" data-theme="menu">Menu <span class="badge" id="cart">0</span></button>
+    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#gallery" data-theme="gallery">Gallery</button>
+    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#reserve" data-theme="reserve">Reserve</button>
+  </div>
+</div></nav>
+
+<main class="container">
+<div class="tab-content">
+
+<!-- HOME -->
+<section class="tab-pane active" id="home">
+  <div class="hero">
+    <div>
+      <h1>Brewed in <span>three dimensions.</span></h1>
+      <p style="font-size:1.15rem;max-width:480px">Single-origin beans, slow-roasted daily and served in a cosy space where every cup has depth. Move your mouse over the cup.</p>
+      <button class="btn" onclick="go('menu')">Explore the Menu</button>
+    </div>
+    <div class="scene" id="scene">
+      <div class="stage" id="stage">
+        <div class="saucer"></div>
+        <div class="cup"></div>
+        <i class="steam" style="left:80px;animation-delay:0s"></i>
+        <i class="steam" style="left:115px;animation-delay:1s"></i>
+        <i class="steam" style="left:150px;animation-delay:2s"></i>
+      </div>
+      <i class="bean" style="left:5%;top:10%"></i><i class="bean" style="right:8%;top:20%;animation-delay:1s"></i>
+      <i class="bean" style="left:12%;bottom:8%;animation-delay:2s"></i><i class="bean" style="right:15%;bottom:12%;animation-delay:3s"></i>
+    </div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section class="tab-pane" id="menu">
+  <h2 style="font-size:2.6rem;text-align:center;color:var(--ac)">Our Signature Menu</h2>
+  <p style="text-align:center">Spin the 3D carousel and add your favourites.</p>
+  <div class="ringwrap"><div class="ring" id="ring"></div></div>
+  <div class="ctrl"><button class="btn" id="prev">◀ Prev</button> <button class="btn" id="next">Next ▶</button></div>
+</section>
+
+<!-- GALLERY -->
+<section class="tab-pane" id="gallery">
+  <h2 style="font-size:2.6rem;text-align:center;color:var(--ac)">The Coffee Cube</h2>
+  <p style="text-align:center">Drag the cube to rotate it. Hover the cards below to flip them.</p>
+  <div class="cubescene" id="cs"><div class="cube" id="cube">
+    <div>☕<small>Espresso</small></div><div>🥛<small>Latte</small></div><div>🍫<small>Mocha</small></div>
+    <div>🧊<small>Cold Brew</small></div><div>🥐<small>Pastry</small></div><div>🫘<small>Beans</small></div></div></div>
+  <div class="row" style="margin-top:2rem">
+    <div class="flip"><div class="flip-in"><div><h3>🌱 Farm</h3>Ethically sourced</div><div>Direct trade from Coorg &amp; Chikmagalur estates.</div></div></div>
+    <div class="flip"><div class="flip-in"><div><h3>🔥 Roast</h3>Small batch</div><div>Roasted every morning in our glass roastery.</div></div></div>
+    <div class="flip"><div class="flip-in"><div><h3>🎨 Art</h3>Latte artists</div><div>Hearts, ferns and tulips poured by hand.</div></div></div>
+  </div>
+</section>
+
+<!-- RESERVE -->
+<section class="tab-pane" id="reserve">
+  <h2 style="font-size:2.8rem;text-align:center">Reserve Your Table</h2>
+  <div class="row">
+    <div class="card tilt">
+      <label>Name</label><input id="rn" placeholder="Your name">
+      <label>Date</label><input type="date" id="rd">
+      <label>Guests</label><select id="rg"><option>1</option><option>2</option><option>4</option><option>6+</option></select>
+      <button class="btn" id="book">Book Table</button>
+    </div>
+    <div>
+      <div class="accordion" id="faq">
+        <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#f1">🕒 Opening hours?</button>
+        <div id="f1" class="collapse show" data-bs-parent="#faq"><div class="accordion-body">Daily 7:00 AM – 11:00 PM.</div></div>
+        <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#f2">🐶 Pet friendly?</button>
+        <div id="f2" class="collapse" data-bs-parent="#faq"><div class="accordion-body">Yes! Our patio welcomes pets.</div></div>
+        <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#f3">📶 Free Wi-Fi?</button>
+        <div id="f3" class="collapse" data-bs-parent="#faq"><div class="accordion-body">Fast Wi-Fi, plenty of sockets.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</main>
+<footer>© 2026 Bean &amp; Beyond · Brewed with HTML, CSS, JS &amp; Bootstrap 5</footer>
+
+<div class="modal fade" id="okModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div style="font-size:3rem">🎉</div><h3 id="okT">Table booked!</h3><p id="okP"></p>
+  <button class="btn" data-bs-dismiss="modal">Great</button></div></div></div>
+<div class="toast-container"><div class="toast" id="toast" role="alert"><span id="toastT"></span></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const items=[["☕","Espresso",120],["🥛","Caffe Latte",180],["🍫","Mocha",210],["🧊","Cold Brew",190],["🍵","Cappuccino",170],["🥐","Butter Croissant",110]];
+const ring=document.getElementById('ring');let angle=0,cart=0;
+items.forEach((it,i)=>{const d=document.createElement('div');d.className='item';
+ d.style.transform=`rotateY(${i*60}deg) translateZ(300px)`;
+ d.innerHTML=`<div class="em">${it[0]}</div><h4>${it[1]}</h4><div class="price">₹${it[2]}</div><button class="btn" style="margin-top:.6rem;padding:.4rem 1rem">Add</button>`;
+ d.querySelector('button').onclick=()=>{cart++;document.getElementById('cart').textContent=cart;toast(it[1]+' added to your order')};
+ ring.appendChild(d)});
+const rot=a=>{angle+=a;ring.style.transform=`rotateY(${angle}deg)`};
+prev.onclick=()=>rot(60);next.onclick=()=>rot(-60);
+setInterval(()=>{if(document.getElementById('menu').classList.contains('active')&&!ring.matches(':hover'))rot(-60)},3500);
+
+function toast(m){const t=document.getElementById('toast');toastT.textContent=m;bootstrap.Toast.getOrCreateInstance(t,{delay:1800}).show()}
+function go(id){bootstrap.Tab.getOrCreateInstance(document.querySelector(`[data-bs-target="#${id}"]`)).show()}
+document.querySelectorAll('[data-bs-toggle=pill]').forEach(b=>b.addEventListener('shown.bs.tab',e=>{document.body.dataset.theme=e.target.dataset.theme;scrollTo({top:0,behavior:'smooth'})}));
+
+// mouse tilt on hero cup
+const sc=document.getElementById('scene'),st=document.getElementById('stage');let auto=0;
+sc.addEventListener('mousemove',e=>{const r=sc.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;st.style.transform=`rotateX(${-y*40}deg) rotateY(${x*80}deg)`});
+sc.addEventListener('mouseleave',()=>st.style.transform='rotateY(-25deg)');
+st.style.transform='rotateY(-25deg)';
+document.querySelectorAll('.tilt').forEach(c=>{c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();c.style.transform=`perspective(700px) rotateY(${((e.clientX-r.left)/r.width-.5)*14}deg) rotateX(${-((e.clientY-r.top)/r.height-.5)*14}deg)`});c.addEventListener('mouseleave',()=>c.style.transform='')});
+
+// draggable cube
+const cube=document.getElementById('cube'),cs=document.getElementById('cs');let rx=-20,ry=30,drag=false,lx,ly;
+const pt=e=>e.touches?e.touches[0]:e;
+cs.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;ly=e.clientY;cube.classList.add('drag');cube.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(!drag)return;ry+=(e.clientX-lx)*.6;rx-=(e.clientY-ly)*.6;lx=e.clientX;ly=e.clientY;cube.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`});
+
+// booking
+book.onclick=()=>{const n=rn.value.trim()||'Guest';okP.textContent=`${n}, we saved a table for ${rg.value} on ${rd.value||'your chosen date'}.`;bootstrap.Modal.getOrCreateInstance(document.getElementById('okModal')).show()};
+</script>
+</body>
+</html>
